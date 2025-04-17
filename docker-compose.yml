@@ -1,0 +1,93 @@
+services:
+  Backend:
+    image: "ghcr.io/felizcoder/crewstand.backend:latest"
+    restart: always
+    container_name: "crewstand-backend"
+    environment:
+      - "FLOWMETER_COUNT=2"
+      - "GPIO_MODE=mock"
+      - "GPIOZERO_PIN_FACTORY=mock"
+      - "INFLUXDB_BUCKET=${INFLUXDB_BUCKET}"
+      - "INFLUXDB_ORG=${INFLUXDB_ORG}"
+      - "INFLUXDB_TOKEN=${INFLUXDB_TOKEN}"
+      - "INFLUXDB_URL=http://influxdb:8086"
+      - "MISSION_WAIT_SECONDS=4"
+      - "PROPORTIONAL_GPIO=10,11"
+      - "PROPORTIONAL_MODE=GPIO"
+      - "PUMP_GPIO=20,21,23,24"
+      - "SOLENOID_GPIO=4,5,6"
+    ports:
+      - "5000:5000"
+
+  Frontend:
+    image: "ghcr.io/felizcoder/crewstand.frontend:latest"
+    restart: always
+    depends_on:
+      - "Backend"
+    container_name: "crewstand-frontend"
+    environment:
+      - "BACKEND_URI=http://backend:5000"
+      - "BACKEND_WS_URI=ws://localhost:5000"
+    ports:
+      - "80:3000"
+
+  Grafana:
+    image: "ghcr.io/felizcoder/crewstand.grafana:latest"
+    container_name: "crewstand-grafana"
+    depends_on:
+      - "InfluxDB"
+    restart: always
+    environment:
+      - "GF_AUTH_ANONYMOUS_ORG_ROLE=Admin"
+      - "INFLUX_TOKEN=${INFLUXDB_TOKEN}"
+      - "INFLUX_URL=http://influxdb:8086"
+      - "NO_PROXY=influxdb"
+      - "no_proxy=influxdb"
+    ports:
+      - "3000:3000"
+
+  InfluxDB:
+    image: "influxdb:2.7.11"
+    restart: always
+    container_name: "crewstand-influxdb"
+    ports:
+      - "8086:8086"
+    volumes:
+      - "${INFLUX_CONFIG_VOLUME}:/etc/influxdb2"
+      - "${INFLUX_DATA_VOLUME}:/var/lib/influxdb2"
+
+  Pid-Control:
+    image: "ghcr.io/felizcoder/crewstand.pid_control:latest"
+    container_name: "crewstand-pidcontrol"
+    depends_on:
+      - "Backend"
+    restart: always
+    environment:
+      - "BACKEND_BASE=backend:5000"
+      - "INFLUXDB_BUCKET=${INFLUXDB_BUCKET}"
+      - "INFLUXDB_ORG=${INFLUXDB_ORG}"
+      - "INFLUXDB_TOKEN=${INFLUXDB_TOKEN}"
+      - "INFLUXDB_URL=http://influxdb:8086"
+      - "PID_KD=0.05"
+      - "PID_KI=0.1"
+      - "PID_KP=1.0"
+      - "PID_OUTPUT_MAX=100"
+      - "PID_OUTPUT_MIN=0"
+      - "PROJECT_NAME=swncrew pid controller"
+      - "PROPORTIONAL_VALVE_ID=0"
+      - "SENSOR_ID=0"
+      - "no_proxy=backend, influxdb"
+  Sensor-Gateway:
+    image: "ghcr.io/felizcoder/crewstand.sensor_gateway:latest"
+    container_name: "crewstand-sensorgateway"
+    restart: always
+    depends_on:
+      - "Backend"
+    environment:
+      - "backend_sensor_url=http://backend:5000"
+      - "measurement_range=[[0.0,1.0], [0,1]]"
+      - "read_interval_s=1"
+      - "sensor_count=2"
+      - "serial_port=mock"
+      - "voltage_range=[-1,1]"
+      - "no_proxy=backend"
