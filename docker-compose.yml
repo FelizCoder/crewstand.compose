@@ -91,3 +91,16 @@ services:
       - "serial_port=mock"
       - "voltage_range=[-1,1]"
       - "no_proxy=backend"
+
+  Classifier:
+    image: "ghcr.io/felizcoder/crewstand.lgbmclassifier:latest"
+    container_name: "crewstand-LGBMclassifier"
+    restart: always
+    depends_on:
+      - "Backend"
+    environment:
+      - "BACKEND_BASE=backend:5000"
+      - "INFLUXDB_BUCKET=${INFLUXDB_BUCKET}"
+      - "INFLUXDB_ORG=${INFLUXDB_ORG}"
+      - "INFLUXDB_TOKEN=${INFLUXDB_TOKEN}"
+      - "INFLUXDB_URL=http://influxdb:8086"

@@ -8,6 +8,8 @@
 4. **InfluxDB**: A time series database that stores sensor and actuator data and other time-related information.
 5. **PID-Control Service**: Implements PID (Proportional-Integral-Derivative) control for flow rate.
 6. **Sensor-Gateway**: A service interfacing with the flow sensors to collect real-time data.
+7. **Classifier**: The Classifier service, it uses a LightGBM model to classify data based on inputs from flow sensor and event definition.
+
 
 ## Requirements
 
@@ -71,3 +73,4 @@ After successful deployment:
 - **Grafana**: Customizable dashboards, primarily depends on InfluxDB data source.
 - **PID-Control Service**: Implements control logic based on PID algorithm for precise environmental control.
 - **Sensor-Gateway**: Mocks or connects to real sensors, formats data, and sends it to the backend service.
+- **Classifier**: Executes a LightGBM machine learning model for classification. It interacts with the backend and relies on InfluxDB for fetching and storing classification results.
