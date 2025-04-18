@@ -1,6 +1,6 @@
 services:
   Backend:
-    image: "ghcr.io/felizcoder/crewstand.backend:latest"
+    image: "ghcr.io/felizcoder/crewstand.backend:85-add-route-for-classified-missions"
     restart: always
     container_name: "crewstand-backend"
     environment:
@@ -32,7 +32,7 @@ services:
       - "80:3000"
 
   Grafana:
-    image: "ghcr.io/felizcoder/crewstand.grafana:latest"
+    image: "ghcr.io/felizcoder/crewstand.grafana:classification-page"
     container_name: "crewstand-grafana"
     depends_on:
       - "InfluxDB"
@@ -104,3 +104,5 @@ services:
       - "INFLUXDB_ORG=${INFLUXDB_ORG}"
       - "INFLUXDB_TOKEN=${INFLUXDB_TOKEN}"
       - "INFLUXDB_URL=http://influxdb:8086"
+      - "no_proxy=backend, influxdb"
+
