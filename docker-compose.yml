@@ -4,20 +4,18 @@ services:
     restart: always
     container_name: "crewstand-backend"
     environment:
-      - "FLOWMETER_COUNT=2"
-      - "GPIO_MODE=mock"
-      - "GPIOZERO_PIN_FACTORY=mock"
+      - "FLOWMETER_COUNT=1"
+      - "GPIO_MODE=CAN"
       - "INFLUXDB_BUCKET=${INFLUXDB_BUCKET}"
       - "INFLUXDB_ORG=${INFLUXDB_ORG}"
       - "INFLUXDB_TOKEN=${INFLUXDB_TOKEN}"
       - "INFLUXDB_URL=http://influxdb:8086"
-      - "MISSION_WAIT_SECONDS=4"
-      - "PROPORTIONAL_GPIO=10,11"
-      - "PROPORTIONAL_MODE=GPIO"
-      - "PUMP_GPIO=20,21,23,24"
-      - "SOLENOID_GPIO=4,5,6"
-    ports:
-      - "5000:5000"
+      - "PROPORTIONAL_GPIO=11"
+      - "PROPORTIONAL_MODE=CAN"
+      - "PUMP_GPIO=17"
+      - "SOLENOID_GPIO=26,19,6,5,22,27"
+      - "MISSION_WAIT_SECONDS=10"
+    networks_mode: "host"
 
   Frontend:
     image: "ghcr.io/felizcoder/crewstand.frontend:latest"
@@ -26,8 +24,7 @@ services:
       - "Backend"
     container_name: "crewstand-frontend"
     environment:
-      - "BACKEND_URI=http://backend:5000"
-      - "BACKEND_WS_URI=ws://localhost:5000"
+      - "BACKEND_URI=http://${BACKEND_BASE}"
     ports:
       - "80:3000"
 
@@ -63,20 +60,19 @@ services:
       - "Backend"
     restart: always
     environment:
-      - "BACKEND_BASE=backend:5000"
+      - "BACKEND_BASE=${BACKEND_BASE}"
       - "INFLUXDB_BUCKET=${INFLUXDB_BUCKET}"
       - "INFLUXDB_ORG=${INFLUXDB_ORG}"
       - "INFLUXDB_TOKEN=${INFLUXDB_TOKEN}"
       - "INFLUXDB_URL=http://influxdb:8086"
-      - "PID_KD=0.05"
-      - "PID_KI=0.1"
-      - "PID_KP=1.0"
+      - "PID_KD=0.2"
+      - "PID_KI=1"
+      - "PID_KP=2.75"
       - "PID_OUTPUT_MAX=100"
       - "PID_OUTPUT_MIN=0"
       - "PROJECT_NAME=swncrew pid controller"
       - "PROPORTIONAL_VALVE_ID=0"
       - "SENSOR_ID=0"
-      - "no_proxy=backend, influxdb"
   Sensor-Gateway:
     image: "ghcr.io/felizcoder/crewstand.sensor_gateway:latest"
     container_name: "crewstand-sensorgateway"
@@ -84,10 +80,10 @@ services:
     depends_on:
       - "Backend"
     environment:
-      - "backend_sensor_url=http://backend:5000"
-      - "measurement_range=[[0.0,1.0], [0,1]]"
-      - "read_interval_s=1"
-      - "sensor_count=2"
-      - "serial_port=mock"
-      - "voltage_range=[-1,1]"
-      - "no_proxy=backend"
+      - "backend_sensor_url=http://${BACKEND_BASE}"
+      - "measurement_range=[[0,25]]"
+      - "read_interval_s=0.5"
+      - "sensor_count=1"
+      - "serial_port=/dev/ttyAMA0"
+      - "serial_baud_rate=250000"
+      - "voltage_range=[0.6,3]"
