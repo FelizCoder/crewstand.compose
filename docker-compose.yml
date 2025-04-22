@@ -20,7 +20,7 @@ services:
       - "5000:5000"
 
   Frontend:
-    image: "ghcr.io/felizcoder/crewstand.frontend:latest"
+    image: "ghcr.io/felizcoder/crewstand.frontend:40-add-classification-page"
     restart: always
     depends_on:
       - "Backend"
@@ -86,14 +86,14 @@ services:
     environment:
       - "backend_sensor_url=http://backend:5000"
       - "measurement_range=[[0.0,1.0], [0,1]]"
-      - "read_interval_s=1"
+      - "read_interval_s=0.5"
       - "sensor_count=2"
       - "serial_port=mock"
       - "voltage_range=[-1,1]"
       - "no_proxy=backend"
 
   Classifier:
-    image: "ghcr.io/felizcoder/crewstand.lgbmclassifier:latest"
+    image: "ghcr.io/felizcoder/crewstand.lgbmclassifier:10-post-classified-missions-to-backend"
     container_name: "crewstand-LGBMclassifier"
     restart: always
     depends_on:
