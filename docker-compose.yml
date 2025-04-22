@@ -6,16 +6,19 @@ services:
     environment:
       - "FLOWMETER_COUNT=1"
       - "GPIO_MODE=CAN"
+      - "FLOWMETER_COUNT=1"
+      - "GPIO_MODE=CAN"
       - "INFLUXDB_BUCKET=${INFLUXDB_BUCKET}"
       - "INFLUXDB_ORG=${INFLUXDB_ORG}"
       - "INFLUXDB_TOKEN=${INFLUXDB_TOKEN}"
-      - "INFLUXDB_URL=http://influxdb:8086"
+      - "INFLUXDB_URL=http://localhost:8086"
       - "PROPORTIONAL_GPIO=11"
       - "PROPORTIONAL_MODE=CAN"
       - "PUMP_GPIO=17"
       - "SOLENOID_GPIO=26,19,6,5,22,27"
       - "MISSION_WAIT_SECONDS=10"
-    networks_mode: "host"
+    network_mode: "host"
+    privileged: true
 
   Frontend:
     image: "ghcr.io/felizcoder/crewstand.frontend:latest"
@@ -24,6 +27,7 @@ services:
       - "Backend"
     container_name: "crewstand-frontend"
     environment:
+      - "BACKEND_URI=http://${BACKEND_BASE}"
       - "BACKEND_URI=http://${BACKEND_BASE}"
     ports:
       - "80:3000"
@@ -61,10 +65,14 @@ services:
     restart: always
     environment:
       - "BACKEND_BASE=${BACKEND_BASE}"
+      - "BACKEND_BASE=${BACKEND_BASE}"
       - "INFLUXDB_BUCKET=${INFLUXDB_BUCKET}"
       - "INFLUXDB_ORG=${INFLUXDB_ORG}"
       - "INFLUXDB_TOKEN=${INFLUXDB_TOKEN}"
       - "INFLUXDB_URL=http://influxdb:8086"
+      - "PID_KD=0.2"
+      - "PID_KI=1"
+      - "PID_KP=2.75"
       - "PID_KD=0.2"
       - "PID_KI=1"
       - "PID_KP=2.75"
@@ -87,3 +95,21 @@ services:
       - "serial_port=/dev/ttyAMA0"
       - "serial_baud_rate=250000"
       - "voltage_range=[0.6,3]"
+    volumes:
+      - "/dev/ttyAMA0:/dev/ttyAMA0:rw"
+    privileged: true
+
+  Classifier:
+    image: "ghcr.io/felizcoder/crewstand.lgbmclassifier:10-post-classified-missions-to-backend"
+    container_name: "crewstand-LGBMclassifier"
+    restart: always
+    depends_on:
+      - "Backend"
+    environment:
+      - "BACKEND_BASE=${BACKEND_BASE}"
+      - "INFLUXDB_BUCKET=${INFLUXDB_BUCKET}"
+      - "INFLUXDB_ORG=${INFLUXDB_ORG}"
+      - "INFLUXDB_TOKEN=${INFLUXDB_TOKEN}"
+      - "INFLUXDB_URL=http://influxdb:8086"
+
+    
