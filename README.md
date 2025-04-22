@@ -21,23 +21,26 @@ To run the CrewStand system, you need:
 
 ### 1. Configuration
 
-#### For InfluxDB:
+#### For InfluxDB & Backend:
 
-Copy `.env.example` to `.env` and fill in your InfluxDB details.
-Edit `.env` file to contain your actual InfluxDB bucket, organization, and token:
+1. **Copy `.env.example` to `.env` and fill in your details.**
+2. **InfluxDB Settings:**
 
 ```
 INFLUXDB_BUCKET=<your_bucket>
 INFLUXDB_ORG=<your_org>
 INFLUXDB_TOKEN=<your_token>
-```
-
-Persistent volumes are used for InfluxDB configuration and data. Ensure that these paths are correctly configured in your `.env` file, then reference them in `docker-compose.yml` to match your specific environment. Add or adjust the following environment variables in your `.env` file to specify the paths of your volumes:
-```
 INFLUX_DATA_VOLUME=<your_data_volume_path>
 INFLUX_CONFIG_VOLUME=<your_config_volume_path>
 ```
 
+3. **Backend Base URL (for API access):**
+
+```bash
+BACKEND_BASE=backend:5000
+```
+
+Ensure this matches the port exposed by your backend service.
 
 ### 3. Running the System
 
@@ -53,7 +56,7 @@ After successful deployment:
 
 - **Frontend**: Access the web interface at `http://localhost`.
 - **Grafana**: View dashboards at `http://localhost:3000`. Credentials will depend on your Grafana configuration.
-- **Backend**: API is running at `http://localhost:5000`.
+- **Backend**: API is running at the URL specified by `BACKEND_BASE` (default: `http://localhost:5000`).
 - **InfluxDB**: Available at `http://localhost:8086` (details depend on your configuration).
 
 ## Troubleshooting
